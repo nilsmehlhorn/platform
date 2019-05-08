@@ -185,11 +185,11 @@ export function createReducer<S>(
   ...ons: On<S>[]
 ): ActionReducer<S> {
   const map = new Map<string, ActionReducer<S>>();
-  const devMode = isDevMode();
+  //const devMode = isDevMode();
 
   for (let on of ons) {
     for (let type of on.types) {
-      if (devMode && map.has(type)) {
+      if (map.has(type)) {
         console.warn(
           `@ngrx/store: The provided action type '${type}' is already provided.`
         );
