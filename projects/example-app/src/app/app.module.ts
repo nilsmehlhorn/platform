@@ -43,7 +43,9 @@ import { AppRoutingModule } from '@example-app/app-routing.module';
     /**
      * @ngrx/router-store keeps router state up-to-date in the store.
      */
-    StoreRouterConnectingModule.forRoot(),
+    StoreRouterConnectingModule.forRoot({
+      onlyEventNavigationId: true,
+    }),
 
     /**
      * Store devtools instrument the store retaining past versions of state
