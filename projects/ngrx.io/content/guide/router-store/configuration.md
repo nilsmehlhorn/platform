@@ -5,12 +5,14 @@ interface StoreRouterConfig {
   stateKey?: string | Selector&lt;any, RouterReducerState&lt;T&gt;&gt;;
   serializer?: new (...args: any[]) => RouterStateSerializer;
   navigationActionTiming?: NavigationActionTiming;
+  onlyEventNavigationId?: boolean;
 }
 </code-example>
 
 - `stateKey`: The name of reducer key, defaults to `router`. It's also possible to provide a selector function.
 - `serializer`: How a router snapshot is serialized. Defaults to `DefaultRouterStateSerializer`. See [Custom Router State Serializer](#custom-router-state-serializer) for more information.
 - `navigationActionTiming`: When the `ROUTER_NAVIGATION` is dispatched. Defaults to `NavigationActionTiming.PreActivation`. See [Navigation Action Timing](#navigation-action-timing) for more information.
+- `onlyEventNavigationId`: By default, the router event exists on the router-store action e.g. `NavigationStart` and `RoutesRecognized`. The problem is that these events are not serializable, use this property to only add the navigation event to the router-store action. Defaults to `false`.
 
 ## Custom Router State Serializer
 
@@ -86,5 +88,27 @@ export class AppModule {}
 <code-example header="app.module.ts">
 StoreRouterConnectingModule.forRoot({
   navigationActionTiming: NavigationActionTiming.PostActivation,
+});
+</code-example>
+
+## Serializable router store
+
+`onlyEventNavigationId` is by default `false`. This adds the whole router event, e.g. NavigationStart` and `RoutesRecognized`, to the `@ngrx/router-store` action. To make the state and action fully serializable set `onlyEventNavigationId` to `true`. This will only add the navigation event id to the `@ngrx/router-store` action, e.g.:
+
+```ts
+{
+  type: '@ngrx/router-store/navigation',
+  payload: {
+    routerState: { ... },
+    event: {
+      id: 1
+    }
+  }
+}
+```
+
+<code-example header="app.module.ts">
+StoreRouterConnectingModule.forRoot({
+  onlyEventNavigationId: true,
 });
 </code-example>
