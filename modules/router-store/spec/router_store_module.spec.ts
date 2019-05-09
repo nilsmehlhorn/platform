@@ -1,12 +1,13 @@
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { Router, RouterEvent } from '@angular/router';
 import {
   routerReducer,
   RouterReducerState,
   StoreRouterConnectingModule,
+  RouterAction,
 } from '@ngrx/router-store';
-import { select, Store } from '@ngrx/store';
-import { withLatestFrom } from 'rxjs/operators';
+import { select, Store, ActionsSubject } from '@ngrx/store';
+import { withLatestFrom, filter } from 'rxjs/operators';
 
 import { createTestModule } from './utils';
 
@@ -132,6 +133,45 @@ describe('Router Store Module', () => {
         expect(actual[0]).toEqual(logs[0]);
         done();
       });
+    });
+  });
+
+  describe('onlyEventNavigationId', () => {
+    function setup(onlyEventNavigationId: boolean) {
+      createTestModule({
+        reducers: {},
+        config: {
+          onlyEventNavigationId,
+        },
+      });
+
+      const actions: ActionsSubject = TestBed.get(ActionsSubject);
+      const router: Router = TestBed.get(Router);
+      return { actions, router };
+    }
+
+    const onlyRouterActions = (a: any): a is RouterAction<any, any> =>
+      a.payload && a.payload.event;
+
+    it('false should dispatch the full event', async () => {
+      const { actions, router } = setup(false);
+      actions
+        .pipe(filter(onlyRouterActions))
+        .subscribe(({ payload }) =>
+          expect(payload.event instanceof RouterEvent).toBe(true)
+        );
+
+      await router.navigateByUrl('/');
+    });
+
+    it('true should dispatch the navidation id', async () => {
+      const { actions, router } = setup(true);
+      actions.pipe(filter(onlyRouterActions)).subscribe(({ payload }: any) => {
+        expect(payload.event instanceof RouterEvent).toBe(false);
+        expect(payload.event).toEqual({ id: 1 });
+      });
+
+      await router.navigateByUrl('/');
     });
   });
 });

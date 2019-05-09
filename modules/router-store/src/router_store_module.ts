@@ -50,10 +50,16 @@ export interface StoreRouterConfig<
    * set this property to NavigationActionTiming.PostActivation.
    */
   navigationActionTiming?: NavigationActionTiming;
+  /**
+   * By default, the router event exists on the router-store action e.g. NavigationStart and RoutesRecognized
+   * The problem is that these events are not serializable
+   * Use this property to only add the navigation event id to the router-store action
+   */
+  onlyEventNavigationId?: boolean;
 }
 
 interface StoreRouterActionPayload {
-  event: RouterEvent;
+  event: Partial<RouterEvent> & { id: number };
   routerState?: SerializedRouterStateSnapshot;
   storeState?: any;
 }
@@ -302,11 +308,15 @@ export class StoreRouterConnectingModule {
   ): void {
     this.trigger = RouterTrigger.ROUTER;
     try {
+      console.log(this.config.onlyEventNavigationId);
       this.store.dispatch({
         type,
         payload: {
           routerState: this.routerState,
           ...payload,
+          event: this.config.onlyEventNavigationId
+            ? { id: payload.event.id }
+            : payload.event,
         },
       });
     } finally {
